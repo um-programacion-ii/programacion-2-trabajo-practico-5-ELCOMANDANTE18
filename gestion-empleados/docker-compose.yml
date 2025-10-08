@@ -1,0 +1,58 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # -----------------------------------
+  # 1. MYSQL 8.0 SERVICE
+  # -----------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: empleados_mysql
+    environment:
+      # Coincide con las credenciales de application.yml (profile: mysql)
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: empleados_db
+      MYSQL_USER: empleados_user
+      MYSQL_PASSWORD: empleados_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - empleados_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # -----------------------------------
+  # 2. POSTGRESQL 16 SERVICE
+  # -----------------------------------
+  postgres:
+    image: postgres:16
+    container_name: empleados_postgres
+    environment:
+      # Coincide con las credenciales de application.yml (profile: postgres)
+      POSTGRES_DB: empleados_db
+      POSTGRES_USER: empleados_user
+      POSTGRES_PASSWORD: empleados_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - empleados_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U empleados_user -d empleados_db"]
+      timeout: 20s
+      retries: 10
+
+# Volúmenes para persistencia de datos
+volumes:
+  mysql_data:
+  postgres_data:
+
+# Red interna para comunicación entre contenedores (si la app estuviera en Docker)
+networks:
+  empleados_network:
+    driver: bridge
