@@ -1,0 +1,93 @@
+# application.yml
+spring:
+  # Define el perfil que se cargará por defecto
+  profiles:
+    active: dev
+
+  # Puerto de la aplicación
+  server:
+    port: 8080
+
+---
+# ==================================
+# PROFILE: DEV (H2 en memoria para Desarrollo y Testing)
+# ==================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # PROPIEDAD CLAVE MODERNA:
+  # Desactiva la ejecución de scripts de Spring Boot (como data.sql),
+  # permitiendo que Hibernate maneje la inicialización con import.sql.
+  sql:
+    init:
+      mode: never
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console # Acceder en: http://localhost:8080/h2-console
+
+  jpa:
+    hibernate:
+      # create-drop garantiza que el esquema se crea y ejecuta el import.sql
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+# ==================================
+# PROFILE: MYSQL (Docker)
+# ==================================
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    # URL apuntando al contenedor 'mysql' que crearemos en docker-compose
+    url: jdbc:mysql://localhost:3306/empleados_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: empleados_user
+    password: empleados_pass
+    hikari:
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update # Actualiza el esquema, mantiene los datos
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+---
+# ==================================
+# PROFILE: POSTGRES (Docker)
+# ==================================
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    # URL apuntando al contenedor 'postgres' que crearemos en docker-compose
+    url: jdbc:postgresql://localhost:5432/empleados_db
+    driver-class-name: org.postgresql.Driver
+    username: empleados_user
+    password: empleados_pass
+  jpa:
+    hibernate:
+      ddl-auto: update # Actualiza el esquema, mantiene los datos
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
